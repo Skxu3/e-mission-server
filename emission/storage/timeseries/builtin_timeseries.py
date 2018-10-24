@@ -93,9 +93,11 @@ class BuiltinTimeSeries(esta.TimeSeries):
         Return the correct timeseries for the key. Analysis results go into the
         analysis timeseries and raw sensor data stays in the regular timeseries.
         """
-        ret_val = self.ts_map[key]
-        # logging.debug("Returning %s" % ret_val)
-        return ret_val
+        if key in self.ts_map:
+            ret_val = self.ts_map[key]
+            # logging.debug("Returning %s" % ret_val)
+            return ret_val
+        return None
 
     def _get_query(self, key_list = None, time_query = None, geo_query = None,
                    extra_query_list = []):
@@ -346,8 +348,11 @@ class BuiltinTimeSeries(esta.TimeSeries):
             logging.debug("entry was fine, no need to fix it")
 
         logging.debug("Inserting entry %s into timeseries" % entry)
-        ins_result = self.get_timeseries_db(entry.metadata.key).insert_one(entry)
-        return ins_result.inserted_id
+        db = self.get_timeseries_db(entry.metadata.key)
+        if db is not None:
+            ins_result = db.insert_one(entry)
+            return ins_result.inserted_id
+        return None
 
     def insert_data(self, user_id, key, data):
         """

@@ -11,6 +11,7 @@ import emission.storage.timeseries.cache_series as estcs
 import argparse
 import emission.core.wrapper.user as ecwu
 
+uuid = None
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("timeline_filename",
@@ -41,6 +42,6 @@ if __name__ == '__main__':
             print("About to save %s" % entry)
         munged_entries.append(entry)
 
-    (tsdb_count, ucdb_count) = estcs.insert_entries(munged_entries)
+    (tsdb_count, ucdb_count) = estcs.insert_entries(uuid, munged_entries)
     print("Finished loading %d entries into the usercache and %d entries into the timeseries" %
         (ucdb_count, tsdb_count))

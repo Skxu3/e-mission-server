@@ -13,7 +13,7 @@ import logging
 import math
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy
 from sklearn import metrics
 from numpy.linalg import norm
@@ -153,15 +153,15 @@ class similarity(object):
         N = len(bars)
         index = numpy.arange(N)
         width = .2
-        plt.bar(index+width, bars, color='k')
-        try:
-            plt.bar(self.num+width, bars[self.num], color='g')
-        except Exception:
-            pass
-        plt.xlim([0, N])
-        plt.xlabel('Bins')
-        plt.ylabel('Number of elements')
-        plt.savefig('histogram.png')
+        # plt.bar(index+width, bars, color='k')
+        # try:
+        #     plt.bar(self.num+width, bars[self.num], color='g')
+        # except Exception:
+        #     pass
+        # plt.xlim([0, N])
+        # plt.xlabel('Bins')
+        # plt.ylabel('Number of elements')
+        # plt.savefig('histogram.png')
 
     #evaluate the bins as if they were a clustering on the data
     def evaluate_bins(self):

@@ -11,7 +11,7 @@ from builtins import *
 from builtins import object
 from past.utils import old_div
 import logging
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy
 from sklearn.cluster import KMeans
 from sklearn import metrics
@@ -144,15 +144,15 @@ class featurization(object):
     def map_clusters(self):
         import pygmaps
         from matplotlib import colors as matcol
-        colormap = plt.cm.get_cmap()
+        # colormap = plt.cm.get_cmap()
 
-        if self.labels:
-            mymap2 = pygmaps.maps(37.5, -122.32, 10)
-            for i in range(len(self.points)):
-                start_lat = self.points[i][1]
-                start_lon = self.points[i][0]
-                end_lat = self.points[i][3]
-                end_lon = self.points[i][2]
-                path = [(start_lat, start_lon), (end_lat, end_lon)]
-                mymap2.addpath(path, matcol.rgb2hex(colormap(old_div(float(self.labels[i]),self.clusters))))
-            mymap2.draw('./mylabels.html')
+        # if self.labels:
+        #     mymap2 = pygmaps.maps(37.5, -122.32, 10)
+        #     for i in range(len(self.points)):
+        #         start_lat = self.points[i][1]
+        #         start_lon = self.points[i][0]
+        #         end_lat = self.points[i][3]
+        #         end_lon = self.points[i][2]
+        #         path = [(start_lat, start_lon), (end_lat, end_lon)]
+        #         mymap2.addpath(path, matcol.rgb2hex(colormap(old_div(float(self.labels[i]),self.clusters))))
+        #     mymap2.draw('./mylabels.html')

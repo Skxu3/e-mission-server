@@ -27,8 +27,12 @@ class Entry(ecwb.WrapperBase):
     # logging.debug("metadata = %s" % self.metadata)
     # logging.debug("key = %s" % self.metadata.key)
     if "metadata" in self:
-        wrapper_class_name = Entry._getData2Wrapper()[self.metadata.key]
-        self._setattr("_wrapper_type", wrapper_class_name)
+        # wrapper_class_name = Entry._getData2Wrapper()[self.metadata.key]
+        # self._setattr("_wrapper_type", wrapper_class_name)
+        data2wrapper = Entry._getData2Wrapper()
+        if self.metadata.key in data2wrapper:
+          wrapper_class_name = data2wrapper[self.metadata.key]
+          self._setattr("_wrapper_type", wrapper_class_name)
 
   @staticmethod
   def _getData2Wrapper():

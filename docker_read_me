@@ -1,0 +1,12 @@
+# Pull the emission scone image
+docker pull skxu3/emission-scone3.5
+
+# Create new network
+docker network create e-mission --driver=bridge
+
+# Open one tab and start mongodb
+docker run -d   --name=e-mission-mongo-1   --net="e-mission"   --restart=always   --mount source=e-mission-mongo-1_data,target=/data/db   --mount source=e-mission-mongo-1_config,target=/data/configdb   mongo:latest     --bind_ip_all
+
+# Open another tab and run the emission server
+docker run --rm -it -v "$PWD":/usr/src/myapp -w /usr/src/myapp -p 8080:8080 --net="e-mission" --mount type=bind,source="$(pwd)"/conf/storage/db.conf,target=/usr/src/app/conf/storage/db.conf,readonly emission-scone3.5 sh
+

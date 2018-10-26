@@ -8,5 +8,5 @@ docker network create e-mission --driver=bridge
 docker run -d   --name=e-mission-mongo-1   --net="e-mission"   --restart=always   --mount source=e-mission-mongo-1_data,target=/data/db   --mount source=e-mission-mongo-1_config,target=/data/configdb   mongo:latest     --bind_ip_all
 
 # Open another tab and run the emission server
-docker run --rm -it -v "$PWD":/usr/src/myapp -w /usr/src/myapp -p 8080:8080 --net="e-mission" --mount type=bind,source="$(pwd)"/conf/storage/db.conf,target=/usr/src/app/conf/storage/db.conf,readonly emission-scone3.5 sh
+docker run --rm -it -v "$PWD":/usr/src/myapp -w /usr/src/myapp -p 8080:8080 --net="e-mission" --mount type=bind,source="$(pwd)"/conf/storage/db.conf,target=/usr/src/app/conf/storage/db.conf,readonly skxu3/emission-scone3.5 sh
 

@@ -10,3 +10,5 @@ docker run -d   --name=e-mission-mongo-1   --net="e-mission"   --restart=always 
 # Open another tab and run the emission server
 docker run --rm -it -v "$PWD":/usr/src/myapp -w /usr/src/myapp -p 8080:8080 --net="e-mission" --mount type=bind,source="$(pwd)"/conf/storage/db.conf,target=/usr/src/app/conf/storage/db.conf,readonly skxu3/emission-scone3.5 sh
 
+# To run in simulation mode once you're inside the shell
+SCONE_MODE=AUTO

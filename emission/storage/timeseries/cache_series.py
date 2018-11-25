@@ -29,6 +29,8 @@ def find_entries(uuid, key_list=None, time_query=None):
     assert(uuid is not None)
     ts = esta.TimeSeries.get_time_series(uuid)
     uc = enua.UserCache.getUserCache(uuid)
+    print("key_list", key_list)
+    print("time_query", time_query)
     ts_entries = ts.find_entries(key_list, time_query,
                                  geo_query = None,
                                  extra_query_list = None)
@@ -47,7 +49,7 @@ def insert_entries(uuid, entry_it):
     # the databases, since they are an implementation detail, and opening a
     # connection to the database for every call
     ts = esta.TimeSeries.get_time_series(uuid)
-    ucdb = edb.get_usercache_db()
+    #ucdb = edb.get_usercache_db() #don't cache right now
     tsdb_count = 0
     ucdb_count = 0
     for entry in entry_it:
@@ -56,9 +58,11 @@ def insert_entries(uuid, entry_it):
             # write_fmt_time is filled in only during the formatting process
             # so if write_fmt_time exists, it must be in the timeseries already
             ts.insert(entry)
+            break
             tsdb_count = tsdb_count + 1
         else:
-            ucdb.save(entry)
-            ucdb_count = ucdb_count + 1
+            print("cache disabled")
+            # ucdb.save(entry)
+            # ucdb_count = ucdb_count + 1
 
     return (tsdb_count, ucdb_count)

@@ -76,12 +76,15 @@ def filter_accuracy(user_id):
     timeseries = esta.TimeSeries.get_time_series(user_id)
 
     if not eac.get_config()["intake.cleaning.filter_accuracy.enable"]:
+        print('filter not enabled')
         logging.debug("filter_accuracy disabled, early return")
         epq.mark_accuracy_filtering_done(user_id, None)
         return
 
     try:
+        print('filter accuracy enabled')
         unfiltered_points_df = timeseries.get_data_df("background/location", time_query)
+
         if len(unfiltered_points_df) == 0:
             epq.mark_accuracy_filtering_done(user_id, None) 
         else:        

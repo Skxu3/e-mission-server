@@ -88,7 +88,7 @@ class Entry(ecwb.WrapperBase):
       result_entry.metadata = ecwm.Metadata.create_metadata_for_result(key)
       result_entry.data = data
       result_entry._populateDependencies()
-      return result_entry
+      return result_entry ##dictionary
 
   @staticmethod
   def get_dedup_list(key):

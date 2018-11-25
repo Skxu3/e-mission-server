@@ -44,7 +44,11 @@ class User(object):
   @staticmethod
   def fromUUID(user_uuid):
     user = User(user_uuid)
+    
     uuid2Email = get_uuid_db().find_one({'uuid': user_uuid})
+
+    # uuid2Email = get_uuid_db().query("*", {'uuid': user_uuid})
+
     # Remove once we remove obsolete code/tests that doesn't create an email ->
     # uuid mapping
     if uuid2Email is not None and 'user_email' in uuid2Email:
@@ -105,7 +109,7 @@ class User(object):
 
   def changeUpdateTs(self, timedelta):
     newTs = self.getUpdateTS() + timedelta
-    get_profile_db().update({'user_id': self.uuid}, {'$set': {'update_ts': newTs}})
+    get_profile_db().insert_or_update({'user_id': self.uuid, 'update_ts': newTs}, {'update_ts': newTs})
 
   def getFirstStudy(self):
     return None
@@ -131,10 +135,14 @@ class User(object):
                       'source':'Shankari',
                       'update_ts': ts,
                       'mpg_array': [defaultMpg]}
-    writeResultProfile = get_profile_db().update_one(
-        {'user_id': uuid},
-        {'$set': initProfileObj},
-        upsert=True)
+    # writeResultProfile = get_profile_db().update_one(
+    #     {'user_id': uuid},
+    #     {'$set': initProfileObj},
+    #     upsert=True)
+    writeResultProfile = get_profile_db().insert_or_update(
+        initProfileObj,
+        initProfileObj)
+    
     return writeResultProfile
 
   # Create assumes that we will definitely create a new one every time.
@@ -152,12 +160,13 @@ class User(object):
     # register operation is idempotent, we need to check and ensure that we don't
     # change the UUID if it already exists.
     existing_entry = get_uuid_db().find_one({"user_email": userEmail})
+    # existing_entry = get_uuid_db().query("*", {"user_email":userEmail})
     if existing_entry is None:
         anonUUID = uuid.uuid4()
     else:
         anonUUID = existing_entry['uuid']
     return User.registerWithUUID(userEmail, anonUUID)
-
+    
   @staticmethod
   def registerWithUUID(userEmail, anonUUID):
     from datetime import datetime
@@ -171,8 +180,9 @@ class User(object):
     # The first two are indexed by the user email. We will use the same field
     # name in both to indicate that it is a shared key. This also allows us to
     # have a simple query that we can reuse.
-    userEmailQuery = {'user_email': userEmail}
-
+    
+    userEmailQuery = {'user_email': userEmail} 
+    
     # First, we construct the email -> uuid mapping and store it in the appropriate database.
     # At this point, we don't know or care whether the user is part of a study
     # We also store a create timestamp just because that's always a good idea
@@ -184,7 +194,12 @@ class User(object):
 
 
     emailUUIDObject = {'user_email': userEmail, 'uuid': anonUUID, 'update_ts': datetime.now()}
-    writeResultMap = get_uuid_db().replace_one(userEmailQuery, emailUUIDObject, upsert=True)
+
+    writeResultMap = get_uuid_db().insert_or_update(emailUUIDObject, emailUUIDObject)
+
+    # mongodb syntax = find all w userEmailQuery and then replace w emailUUIDObject, or just create new; sql = only if violate unique constraint, then update
+    # writeResultMap = get_uuid_db().replace_one(userEmailQuery, emailUUIDObject, upsert=True)
+    
     # Note, if we did want the create_ts to not be overwritten, we can use the
     # writeResult to decide how to deal with the values
 

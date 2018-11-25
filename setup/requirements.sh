@@ -43,3 +43,6 @@ pip install tempora==1.9
 pip install urllib3==1.22
 pip install utm==0.4.2
 pip install xmltodict==0.11.0
+#for cryptdb
+pip install mysql-connector
+pip install jsonpickle

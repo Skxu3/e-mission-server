@@ -12,7 +12,7 @@ import itertools
 
 import emission.core.get_database as edb
 import emission.storage.timeseries.abstract_timeseries as esta
-
+from emission.core.sql_utilities import *
 import emission.core.wrapper.entry as ecwe
 
 ts_enum_map = {
@@ -25,8 +25,8 @@ INVALID_QUERY = {'1': '2'}
 class BuiltinTimeSeries(esta.TimeSeries):
     def __init__(self, user_id):
         super(BuiltinTimeSeries, self).__init__(user_id)
-        self.key_query = lambda key: {"metadata.key": key}
-        self.type_query = lambda entry_type: {"metadata.type": entry_type}
+        self.key_query = lambda key: {"metadata_key": key}#{"metadata.key": key}
+        self.type_query = lambda entry_type: {"metadata_type": entry_type}#{"metadata.type": entry_type}
         self.user_query = {"user_id": self.user_id} # UUID is mandatory for this version
         self.timeseries_db = ts_enum_map[esta.EntryType.DATA_TYPE]
         self.analysis_timeseries_db = ts_enum_map[esta.EntryType.ANALYSIS_TYPE]
@@ -111,13 +111,10 @@ class BuiltinTimeSeries(esta.TimeSeries):
         :param extra_query_list: additional queries for mode, etc
         :return:
         """
+        ret_queries = []
         ret_query = {}
         ret_query.update(self.user_query)
-        if key_list is not None and len(key_list) > 0:
-            key_query_list = []
-            for key in key_list:
-                key_query_list.append(self.key_query(key))
-            ret_query.update({"$or": key_query_list})
+        
         if time_query is not None:
             ret_query.update(time_query.get_query())
         if geo_query is not None:
@@ -134,11 +131,60 @@ class BuiltinTimeSeries(esta.TimeSeries):
                                          list(overlap_keys))
                 else:
                     ret_query.update(extra_query)
+        if key_list is not None and len(key_list) > 0:
+            for key in key_list:
+                tmp_query = ret_query.copy()
+                ret_query.update(self.key_query(key))
+                ret_queries.append(ret_query)
+                ret_query = tmp_query
+        return ret_queries
+
+    def _get_query2(self, key_list = None, time_query = None, geo_query = None,
+                   extra_query_list = []):
+        """
+        The extra query list cannot contain a top level field from
+        one of the existing queries, otherwise it will be overwritten
+        by the extra query
+        :param key_list: list of metadata keys to query
+        :param time_query: time range or time components (filter)
+        :param geo_query: $geoWithin query
+        :param extra_query_list: additional queries for mode, etc
+        :return:
+        """
+        ret_query = {}
+        ret_query.update(self.user_query)
+        print("self.user_query ", self.user_query)
+        if key_list is not None and len(key_list) > 0:
+            key_query_list = []
+            for key in key_list:
+                key_query_list.append(self.key_query(key))
+                print("self.key_query(key) ", self.key_query(key))
+            ret_query.update({"$or": key_query_list})
+        if time_query is not None:
+            ret_query.update(time_query.get_query())
+            print("time_query.get_query() ", time_query.get_query())
+        if geo_query is not None:
+            ret_query.update(geo_query.get_query())
+            print("geo_query.get_query() ", geo_query.get_query())
+        if extra_query_list is not None:
+            for extra_query in extra_query_list:
+                eq_keys = set(extra_query.keys())
+                curr_keys = set(ret_query.keys())
+                overlap_keys = eq_keys.intersection(curr_keys)
+                if len(overlap_keys) != 0:
+                    logging.info("eq_keys = %s, curr_keys = %s, overlap_keys = %s" %
+                                 (eq_keys, curr_keys, overlap_keys))
+                    raise AttributeError("extra query would overwrite keys %s" %
+                                         list(overlap_keys))
+                else:
+                    ret_query.update(extra_query)
+        print("after _get_query ", ret_query)
         return ret_query
 
     def _get_sort_key(self, time_query = None):
         if time_query is None:
-            return "metadata.write_ts"
+            #return "metadata.write_ts"
+            return "metadata_write_ts"
         elif time_query.timeType.endswith("local_dt"):
             return time_query.timeType.replace("local_dt", "ts")
         else:
@@ -202,8 +248,15 @@ class BuiltinTimeSeries(esta.TimeSeries):
                                                                  geo_query,
                                                                  extra_query_list,
                                                                  sort_key)
+        orig_count, analysis_count = 0, 0
+        if orig_ts_db_result is not None:
+            orig_count = len(orig_ts_db_result)#.count()
+        if analysis_ts_db_result is not None:
+            analysis_count = len(analysis_ts_db_result)#.count()
         logging.debug("orig_ts_db_matches = %s, analysis_ts_db_matches = %s" %
-            (orig_ts_db_result.count(), analysis_ts_db_result.count()))
+            (orig_count, analysis_count))
+        if orig_ts_db_result is None and analysis_ts_db_result is None:
+            return None
         return itertools.chain(orig_ts_db_result, analysis_ts_db_result)
 
     def _get_entries_for_timeseries(self, tsdb, key_list, time_query, geo_query,
@@ -211,13 +264,28 @@ class BuiltinTimeSeries(esta.TimeSeries):
         # workaround for https://github.com/e-mission/e-mission-server/issues/271
         # during the migration
         if key_list is None or len(key_list) > 0:
-            ts_db_cursor = tsdb.find(
-                self._get_query(key_list, time_query, geo_query,
-                                extra_query_list))
+            # ts_db_cursor = tsdb.find(
+            #     self._get_query(key_list, time_query, geo_query,
+            #                     extra_query_list))
+            queries = self._get_query(key_list, time_query, geo_query,
+                                extra_query_list) # TODO
+            print('final query ', queries)
+            ##handle simple case first
+            if len(queries) == 1:
+                query = queries[0]
+                tsdb.set_table(metadata_key_to_table[query["metadata_key"]]) 
+                ts_db_cursor = tsdb.find(query)
+
             if sort_key is None:
                 ts_db_result = ts_db_cursor
             else:
-                ts_db_result = ts_db_cursor.sort(sort_key, pymongo.ASCENDING)
+                #ts_db_result = ts_db_cursor.sort(sort_key, pymongo.ASCENDING)
+
+                # sort list of dic 
+                if ts_db_cursor is not None:
+                    ts_db_result = sorted(ts_db_cursor, key=lambda k: k[sort_key]) 
+                else:
+                    ts_db_result = ts_db_cursor
             # We send the results from the phone in batches of 10,000
             # And we support reading upto 100 times that amount at a time, so over
             # This is more than the number of entries across all metadata types for
@@ -227,11 +295,19 @@ class BuiltinTimeSeries(esta.TimeSeries):
             #
             # In [593]: edb.get_timeseries_db().find({"user_id": UUID('ea59084e-11d4-4076-9252-3b9a29ce35e0')}).count()
             # Out[593]: 449869
-            ts_db_result.limit(25 * 10000)
+            print(ts_db_result)
+            if ts_db_result is not None:
+                ts_db_result = ts_db_result[:25 * 10000]
+                #ts_db_result.limit(25 * 10000) #only 25*10k entries
+
         else:
             ts_db_result = tsdb.find(INVALID_QUERY)
 
-        logging.debug("finished querying values for %s, count = %d" % (key_list, ts_db_result.count()))
+        count = 0
+        if ts_db_result is not None:
+            count = len(ts_db_result)
+            #count = ts_db_result.count()
+        logging.debug("finished querying values for %s, count = %d" % (key_list, count))
         return ts_db_result
 
     def get_entry_at_ts(self, key, ts_key, ts):
@@ -270,9 +346,12 @@ class BuiltinTimeSeries(esta.TimeSeries):
         :param it: The iterator to be converted
         :return: A dataframe composed of the entries in the iterator
         """
+        if entry_it is None:
+            return None
         if map_fn is None:
             map_fn = BuiltinTimeSeries._to_df_entry
         # Dataframe doesn't like to work off an iterator - it wants everything in memory
+
         df = pd.DataFrame([map_fn(e) for e in entry_it])
         logging.debug("Found %s results" % len(df))
         if len(df) > 0:
@@ -300,7 +379,8 @@ class BuiltinTimeSeries(esta.TimeSeries):
         """
         result_it = self.get_timeseries_db(key).find(self._get_query([key], time_query),
                                                  {"_id": False, field: True}).sort(field, pymongo.DESCENDING).limit(1)
-        if result_it.count() == 0:
+        if len(result_it) == 0:
+        #if result_it.count() == 0:
             return -1
 
         retVal = list(result_it)[0]
@@ -337,8 +417,31 @@ class BuiltinTimeSeries(esta.TimeSeries):
         Inserts the specified entry and returns the object ID 
         """
         logging.debug("insert called with entry of type %s" % type(entry))
-        if type(entry) == dict:
-            entry = ecwe.Entry(entry)
+
+        # if type(entry) == dict: #turn dictionary into an Entry
+        #     entry = ecwe.Entry(entry)
+
+        if type(entry) != ecwe.Entry and type(entry) != dict:
+            print("weird entry with type ", str(type(entry)))
+        if type(entry) == ecwe.Entry:
+            dicEntry = dict()
+            dicEntry['_id'] = entry['_id']
+            dicEntry['data'] = entry['data']
+            dicEntry['user_id'] = entry['user_id']
+            
+            metadata_fields = ["key", "platform", "type", "write_ts", "time_zone", "write_fmt_time", "read_ts"]
+
+            metadata = entry['metadata']
+            for field in metadata.props:
+                if field in metadata and field != "write_local_dt":
+                    dicEntry['metadata_' + field] = metadata[field]
+            if "write_local_dt" in metadata:
+                metadata_local_dt = metadata["write_local_dt"]
+                for field in metadata_local_dt.props:
+                    if field in metadata_local_dt:
+                        dicEntry['metadata_write_local_dt_' + field] = metadata_local_dt[field]
+            entry = dicEntry
+        # print(entry)
         if "user_id" not in entry or entry["user_id"] is None:
             entry["user_id"] = self.user_id
         if self.user_id is not None and entry["user_id"] != self.user_id:
@@ -348,10 +451,15 @@ class BuiltinTimeSeries(esta.TimeSeries):
             logging.debug("entry was fine, no need to fix it")
 
         logging.debug("Inserting entry %s into timeseries" % entry)
-        db = self.get_timeseries_db(entry.metadata.key)
+
+        #db = self.get_timeseries_db(entry.metadata.key)
+        db = edb.get_timeseries_db()
         if db is not None:
-            ins_result = db.insert_one(entry)
-            return ins_result.inserted_id
+            db.insert_one(entry)
+            
+            ins_result_inserted_id = db.cursor.lastrowid
+
+            return ins_result_inserted_id
         return None
 
     def insert_data(self, user_id, key, data):

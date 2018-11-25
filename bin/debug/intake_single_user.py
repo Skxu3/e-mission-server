@@ -29,5 +29,5 @@ if __name__ == '__main__':
         sel_uuid = uuid.UUID(args.user_uuid)
     else:
         sel_uuid = ecwu.User.fromEmail(args.user_email).uuid
-
+    print("before run_intake_pipeline")
     epi.run_intake_pipeline("single", [sel_uuid])

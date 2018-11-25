@@ -7,14 +7,14 @@ from sklearn.cluster import DBSCAN
 
 # Our imports
 import emission.core.get_database as edb
-from emission.core.get_database import get_section_db, get_mode_db, get_routeCluster_db,get_transit_db
+#from emission.core.get_database import get_section_db, get_mode_db, get_routeCluster_db,get_transit_db
 from emission.core.common import calDistance, Include_place_2
 from emission.analysis.modelling.tour_model.trajectory_matching.route_matching import getRoute,fullMatchDistance,matchTransitRoutes,matchTransitStops
 
-Sections = get_section_db()
+#Sections = get_section_db()
 from pymongo import MongoClient
 BackupSections = MongoClient(edb.url).Backup_database.Stage_Sections
-Modes = get_mode_db()
+#Modes = get_mode_db()
 
 
 # The speed is in m/s

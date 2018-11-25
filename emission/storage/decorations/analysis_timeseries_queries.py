@@ -58,6 +58,8 @@ def get_entries(key, user_id, time_query, untracked_key = None,
                       (untracked_key, key_list))
     doc_cursor = ts.find_entries(key_list, time_query, geo_query, extra_query_list)
     # TODO: Fix "TripIterator" and return it instead of this list
+    if doc_cursor is None:
+        return [] 
     curr_entry_list = [ecwe.Entry(doc) for doc in doc_cursor]
     logging.debug("Returning entry with length %d result" % len(curr_entry_list))
     return curr_entry_list

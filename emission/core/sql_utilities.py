@@ -1,0 +1,62 @@
+from emission.core.sql_table_fields import *
+
+metadata_key_to_table = {
+    "background/location": "Timeseries_location",
+    "background/filtered_location": "Timeseries_location",
+    "background/motion_activity": "Timeseries_motionactivity",
+    # "background/battery": self.timeseries_db,
+    "statemachine/transition": "Timeseries_transition",
+    # "config/sensor_config": self.timeseries_db,
+    # "config/sync_config": self.timeseries_db,
+    # "config/consent": self.timeseries_db,
+    "stats/server_api_time": "Timeseries_statsevent",
+    "stats/server_api_error": "Timeseries_statsevent",
+    "stats/pipeline_time": "Timeseries_statsevent",
+    "stats/pipeline_error": "Timeseries_statsevent",
+    "stats/client_time": "Timeseries_statsevent",
+    "stats/client_nav_event": "Timeseries_statsevent",
+    "stats/client_error": "Timeseries_statsevent",
+    # "manual/incident": self.timeseries_db,
+    # "manual/mode_confirm": self.timeseries_db,
+    # "manual/purpose_confirm": self.timeseries_db,
+    "segmentation/raw_trip": "Analysis_timeseries_trip",
+    "segmentation/raw_place": "Analysis_timeseries_place",
+    "segmentation/raw_section": "Analysis_timeseries_section",
+    "segmentation/raw_stop": "Analysis_timeseries_stop",
+    # "segmentation/raw_untracked": self.analysis_timeseries_db,
+    "analysis/smoothing": "Analysis_timeseries_smoothedresults",
+    "analysis/cleaned_trip": "Analysis_timeseries_trip",
+    "analysis/cleaned_place": "Analysis_timeseries_place",
+    "analysis/cleaned_section": "Analysis_timeseries_section",
+    "analysis/cleaned_stop": "Analysis_timeseries_stop",
+    # "analysis/cleaned_untracked": self.analysis_timeseries_db,
+    "analysis/recreated_location": "Timeseries_location",
+    # "metrics/daily_user_count": self.analysis_timeseries_db,
+    # "metrics/daily_mean_count": self.analysis_timeseries_db,
+    # "metrics/daily_user_distance": self.analysis_timeseries_db,
+    # "metrics/daily_mean_distance": self.analysis_timeseries_db,
+    # "metrics/daily_user_duration": self.analysis_timeseries_db,
+    # "metrics/daily_mean_duration": self.analysis_timeseries_db,
+    # "metrics/daily_user_median_speed": self.analysis_timeseries_db,
+    # "metrics/daily_mean_median_speed": self.analysis_timeseries_db,
+    "inference/prediction": "Inference_timeseries_prediction",
+    "analysis/inferred_section": "Analysis_timeseries_section"
+    }
+
+metadata_string = ["metadata_key", "metadata_platform", "metadata_time_zone", "metadata_type", "metadata_write_fmt_time", "metadata_write_local_dt_timezone", "user_id", "_id"]
+
+table_string = {
+    "Timeseries_location" :["data_filter", "data_fmt_time", "data_loc_coordinates", "data_loc_type", "data_local_dt_timezone"],
+    "Timeseries_motionactivity" : ["data_fmt_time", "data_local_dt_timezone"],
+    "Timeseries_transition" : ["data_fmt_time", "data_local_dt_timezone"],
+    "Timeseries_statsevent" : ["data_name"],
+    "Analysis_timeseries_trip" : ["data_end_fmt_time", "data_end_loc_coordinates", "data_end_loc_type", "data_end_local_dt_timezone", "data_end_place", "data_source", "data_start_fmt_time", "data_start_loc_coordinates", "data_start_loc_type", "data_start_local_dt_timezone", "data_start_place", "user_id"],
+    "Analysis_timeseries_section" : ["data_end_fmt_time", "data_end_loc_coordinates", "data_end_loc_type", "data_end_local_dt_timezone", "data_end_stop", "data_source", "data_speeds", "data_start_fmt_time", "data_start_loc_coordinates", "data_start_loc_type", "data_start_local_dt_timezone", "data_trip_id", "user_id"],
+    "Analysis_timeseries_stop" : ["data_ending_section", "data_enter_fmt_time", "data_enter_loc_coordinates", "data_enter_loc_type", "data_enter_local_dt_timezone", "data_enter_stop", "data_exit_fmt_time", "data_exit_loc_coordinates", "data_exit_local_dt_timezone", "data_exit_loc_type", "data_exit_place", "data_source", "data_starting_section", "user_id"],
+    "Analysis_timeseries_place" : ["data_exit_fmt_time", "data_exit_local_dt_timezone", "data_exit_location_coordinates", "data_exit_location_type", "data_raw_place", "data_source", "data_starting_trip", "user_id"],
+    "Analysis_timeseries_smoothedresults" : ["data_deleted_points", "data_filtering_algo", "data_outlier_algo", "data_section", "user_id"],
+    "Inference_timeseries_prediction" : ["data_mode_map", "data_section_id", "data_trip_id", "user_id"],
+    "Stage_Profiles" : ["mpg_array", "source", "user_id", "update_ts"],
+    "Stage_pipeline_state" : ["curr_run_ts", "user_id"],
+    "Stage_uuids" : ["user_email", "uuid", "update_ts"]
+}

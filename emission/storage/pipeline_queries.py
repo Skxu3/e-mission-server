@@ -56,7 +56,8 @@ def get_time_range_for_sectioning(user_id):
     # Note that this is a query against the trip database, so we cannot search using the
     # "write_ts" query. Instead, we change the query to be against the trip's end_ts
     tq = get_time_range_for_stage(user_id, ps.PipelineStages.SECTION_SEGMENTATION)
-    tq.timeType = "data.end_ts"
+    tq.timeType = "data_end_ts"
+    #tq.timeType = "data.end_ts"
     return tq
 
 def mark_sectioning_done(user_id, last_trip_done):
@@ -79,7 +80,8 @@ def get_time_range_for_smoothing(user_id):
     :rtype: emission.storage.timeseries.timequery.TimeQuery
     """
     tq = get_time_range_for_stage(user_id, ps.PipelineStages.JUMP_SMOOTHING)
-    tq.timeType = "data.end_ts"
+    tq.timeType = "data_end_ts"
+    #tq.timeType = "data.end_ts"
     return tq
 
 def mark_smoothing_done(user_id, last_section_done):
@@ -95,7 +97,8 @@ def mark_smoothing_failed(user_id):
 
 def get_time_range_for_mode_inference(user_id):
     tq = get_time_range_for_stage(user_id, ps.PipelineStages.MODE_INFERENCE)
-    tq.timeType = "data.end_ts"
+    tq.timeType = "data_end_ts"
+    #tq.timeType = "data.end_ts"
     return tq
 
 def mark_mode_inference_complete(user_id):
@@ -129,7 +132,8 @@ def get_time_range_for_clean_resampling(user_id):
     :rtype: emission.storage.timeseries.timequery.TimeQuery
     """
     tq = get_time_range_for_stage(user_id, ps.PipelineStages.CLEAN_RESAMPLING)
-    tq.timeType = "data.end_ts"
+    tq.timeType = "data_end_ts"
+    #tq.timeType = "data.end_ts"
     return tq
 
 def mark_clean_resampling_done(user_id, last_section_done):
@@ -144,7 +148,8 @@ def mark_clean_resampling_failed(user_id):
 
 def get_time_range_for_mode_inference(user_id):
     tq = get_time_range_for_stage(user_id, ps.PipelineStages.MODE_INFERENCE)
-    tq.timeType = "data.end_ts"
+    tq.timeType = "data_end_ts"
+    #tq.timeType = "data.end_ts"
     return tq
 
 def mark_mode_inference_done(user_id, last_section_done):
@@ -192,7 +197,9 @@ def mark_stage_done(user_id, stage, last_processed_ts):
         logging.info("For stage %s, last_ts_processed is unchanged" % stage)
     curr_state.curr_run_ts = None
     logging.debug("About to save object %s" % curr_state)
+
     edb.save(edb.get_pipeline_state_db(), curr_state)
+    
     logging.debug("After saving state %s, list is %s" % (curr_state,
         list(edb.get_pipeline_state_db().find({"user_id": user_id}))))
 
@@ -229,6 +236,8 @@ def get_time_range_for_stage(user_id, stage):
     if start_ts is None:
         logging.info("For stage %s, start_ts is None" % stage)
     else:
+        print('start_ts', start_ts)
+        print('start_ts type',type(start_ts))
         logging.info("For stage %s, start_ts = %s" % (stage, pydt.datetime.utcfromtimestamp(start_ts).isoformat()))
 
     assert curr_state.curr_run_ts is None, "curr_state.curr_run_ts = %s" % curr_state.curr_run_ts
@@ -240,7 +249,8 @@ def get_time_range_for_stage(user_id, stage):
     # entries.
     end_ts = time.time() - END_FUZZ_AVOID_LTE
 
-    ret_query = estt.TimeQuery("metadata.write_ts", start_ts, end_ts)
+    ret_query = estt.TimeQuery("metadata_write_ts", start_ts, end_ts)
+    #ret_query = estt.TimeQuery("metadata.write_ts", start_ts, end_ts)
 
     curr_state.curr_run_ts = end_ts
     logging.debug("About to save object %s" % curr_state)
@@ -253,6 +263,7 @@ def get_current_state(user_id, stage):
     curr_state_doc = edb.get_pipeline_state_db().find_one({"user_id": user_id,
                                                             "pipeline_stage": stage.value})
     # logging.debug("returning curr_state_doc  %s for stage %s " % (curr_state_doc, stage))
+    print("curr_state_doc: ", curr_state_doc)
     if curr_state_doc is not None:
         return ps.PipelineState(curr_state_doc)
     else:

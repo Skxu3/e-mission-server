@@ -17,8 +17,11 @@ class TimeQuery(object):
 
     def get_query(self):
         time_key = self.timeType
-        ret_query = {time_key : {"$lte": self.endTs}}
+        time_key = time_key.replace('.', '_')
+        ret_query = time_key + " <= " + str(self.endTs) + ""
+        #ret_query = {time_key : {"$lte": self.endTs}}
         if (self.startTs is not None):
-            ret_query[time_key].update({"$gte": self.startTs})
-        return ret_query
+            ret_query += time_key + " >= " + str(self.startTs) + ""
+            # ret_query[time_key].update({"$gte": self.startTs})
+        return {"direct_query": ret_query}
 

@@ -7,9 +7,9 @@ RUN apk --update add --no-cache \
     gcc \
     freetype-dev \
     build-base \
-	bats \
-	libbsd \
-	openssl
+    bats \
+    libbsd \
+    openssl
 
 RUN apk add python py-pip python-dev 
 
@@ -20,9 +20,9 @@ RUN apk add --no-cache --virtual .build-deps \
     g++ \
     libffi-dev \
     libxml2-dev \
-	libxslt-dev \
-	openssl-dev \
-	libpng-dev
+    libxslt-dev \
+    openssl-dev \
+    libpng-dev
 RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
 
 # create /test subdir

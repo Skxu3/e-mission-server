@@ -69,19 +69,23 @@ def run_intake_pipeline(process_number, uuid_list):
             continue
 
         try:
+            print("before run_intake_pipeline_for_user")
             run_intake_pipeline_for_user(uuid)
         except Exception as e:
             esds.store_pipeline_error(uuid, "WHOLE_PIPELINE", time.time(), None)
             logging.exception("Found error %s while processing pipeline "
                               "for user %s, skipping" % (e, uuid))
+            print("Found error processing pipeline ", e)
 
 def run_intake_pipeline_for_user(uuid):
-        uh = euah.UserCacheHandler.getUserCacheHandler(uuid)
+        #uh = euah.UserCacheHandler.getUserCacheHandler(uuid)
 
         with ect.Timer() as uct:
             logging.info("*" * 10 + "UUID %s: moving to long term" % uuid + "*" * 10)
             print(str(arrow.now()) + "*" * 10 + "UUID %s: moving to long term" % uuid + "*" * 10)
-            uh.moveToLongTerm()
+            
+            print("skip moving to long term")
+            #uh.moveToLongTerm()
 
         esds.store_pipeline_time(uuid, ecwp.PipelineStages.USERCACHE.name,
                                  time.time(), uct.elapsed)
@@ -96,7 +100,12 @@ def run_intake_pipeline_for_user(uuid):
         # I wonder if this (distinct versus count) is the reason that the pipeline has
         # become so much slower recently. Let's try to actually delete the
         # spurious entries or at least mark them as obsolete and see if that helps.
-        if edb.get_timeseries_db().find({"user_id": uuid}).distinct("metadata.key") == ["stats/pipeline_time"]:
+        
+        distinct_keys = edb.get_timeseries_statsevent_db().find_distinct({"user_id": uuid}, "metadata_key")
+        ### or just group by metadata_key and then get count?
+
+        if distinct_keys != None and len(distinct_keys) == 1 and distinct_keys[0] == "stats/pipeline_time":
+        # if edb.get_timeseries_db().find({"user_id": uuid}).distinct("metadata.key") == ["stats/pipeline_time"]:
             logging.debug("Found no entries for %s, skipping" % uuid)
             return
 
@@ -151,7 +160,8 @@ def run_intake_pipeline_for_user(uuid):
         with ect.Timer() as act:
             logging.info("*" * 10 + "UUID %s: checking active mode trips to autocheck habits" % uuid + "*" * 10)
             print(str(arrow.now()) + "*" * 10 + "UUID %s: checking active mode trips to autocheck habits" % uuid + "*" * 10)
-            autocheck.give_points_for_all_tasks(uuid)
+            print('skip autocheck habits')
+            #autocheck.give_points_for_all_tasks(uuid)
 
         esds.store_pipeline_time(uuid, "AUTOCHECK_POINTS",
                                  time.time(), act.elapsed)
@@ -159,7 +169,7 @@ def run_intake_pipeline_for_user(uuid):
         with ect.Timer() as ogt:
             logging.info("*" * 10 + "UUID %s: storing views to cache" % uuid + "*" * 10)
             print(str(arrow.now()) + "*" * 10 + "UUID %s: storing views to cache" % uuid + "*" * 10)
-            uh.storeViewsToCache()
+            #uh.storeViewsToCache()
 
         esds.store_pipeline_time(uuid, ecwp.PipelineStages.OUTPUT_GEN.name,
                                  time.time(), ogt.elapsed)

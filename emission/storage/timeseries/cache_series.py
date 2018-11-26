@@ -52,6 +52,7 @@ def insert_entries(uuid, entry_it):
     #ucdb = edb.get_usercache_db() #don't cache right now
     tsdb_count = 0
     ucdb_count = 0
+    i = 0
     for entry in entry_it:
         assert entry["user_id"] is not None, "user_id for entry %s is None, cannot insert" % entry
         if "write_fmt_time" in entry["metadata"]:
@@ -59,6 +60,9 @@ def insert_entries(uuid, entry_it):
             # so if write_fmt_time exists, it must be in the timeseries already
             ts.insert(entry)
             tsdb_count = tsdb_count + 1
+            i += 1
+            if i == 10:
+                break
         else:
             print("cache disabled")
             # ucdb.save(entry)

@@ -272,6 +272,7 @@ class SQLManager:
 				self.cursor.execute(table_description)
 				self.commit()
 			except mysql.connector.Error as err:
+				return
 				# if err.errno == ER_TABLE_EXISTS_ERROR:
 				# 	print("already exists.")
 				# else:

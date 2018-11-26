@@ -62,7 +62,8 @@ class SQLManager:
 			sql += " and ".join(parameters)
 			if direct_query is not None:
 				sql += " and " + direct_query
-		print('querying: ', sql)
+		#print('querying: ', sql)
+		print('querying')
 		try:
 			self.cursor.execute(sql)
 			return True
@@ -104,7 +105,8 @@ class SQLManager:
 			parameters = [key +" = \'"+ str(paramsDic[key]) + "\'" for key in paramsDic.keys()]
 			sql += " and ".join(parameters)
 		sql += " group by " + fields
-		print('querying distinct: ', sql)
+		#print('querying distinct: ', sql)
+		print('querying distinct')
 		try:
 			self.cursor.execute(sql)
 			return self.fetchall()
@@ -128,7 +130,8 @@ class SQLManager:
 			sql += " where "
 			parameters = [key +" = '"+str(paramsDic[key]) + "'" for key in paramsDic.keys()]
 			sql += " and ".join(parameters)
-		print('update: ', sql)
+		#print('update: ', sql)
+		print('update')
 		self.cursor.execute(sql)
 		self.commit()
 
@@ -169,7 +172,8 @@ class SQLManager:
 		sql = sql.replace("None", "NULL")
 
 		try:
-			print('insert_or_update: ', sql)
+			#print('insert_or_update: ', sql)
+			print('insert_or_update')
 			self.cursor.execute(sql)
 			self.commit()
 		except mysql.connector.Error as err:
@@ -197,7 +201,8 @@ class SQLManager:
 		sql += keys + ") values ("
 		sql += vals + ")"
 		try:
-			print("insert: ", sql)
+			#print("insert: ", sql)
+			print("insert")
 			self.cursor.execute(sql)
 			self.commit()
 		except mysql.connector.Error as err:
@@ -270,7 +275,7 @@ class SQLManager:
 				# if err.errno == ER_TABLE_EXISTS_ERROR:
 				# 	print("already exists.")
 				# else:
-				print(err.msg)
+				#print(err.msg)
 
 	#flatten json
 	def flatten_json(self, y):

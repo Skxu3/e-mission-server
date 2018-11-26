@@ -58,7 +58,6 @@ def insert_entries(uuid, entry_it):
             # write_fmt_time is filled in only during the formatting process
             # so if write_fmt_time exists, it must be in the timeseries already
             ts.insert(entry)
-            break
             tsdb_count = tsdb_count + 1
         else:
             print("cache disabled")
